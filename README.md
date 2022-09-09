@@ -4,7 +4,7 @@ This script will take a CDS submission template and create a dbGaP SRA submissio
 To run the script on a complete and validated [CDS v1.3.1 validated submission template](https://github.com/CBIIT/CancerDataServices-SubmissionValidationR), run the following command in a terminal where R is installed for help.
 
 ```
-Rscript --vanilla CDS-File_CopieR.R --help
+Rscript --vanilla CDS_to_SRA.R --help
 ```
 
 ```
