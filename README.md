@@ -24,3 +24,13 @@ Options:
 ```
 
 An example usage would be the following:
+
+```
+Rscript --vanilla CDS_to_SRA.R -t phsXXXXXX.xlsx -f test_files/a_all_pass_validated_CDS-v1.3.1.xlsx 
+The SRA submission file is being made at this time.
+
+
+The dbGaP SRA metadata submission has been created here: test_files/a_all_pass_validated_CDS-v1.3.1_SRA_submission_2022_09_12.xlsx.
+```
+
+If there are any errors or problems with the file, it will write out the possible issues. Most of these should not occur as these submission manifests should be valid based on the [CDS-SubmissionValidatoR](https://github.com/CBIIT/CancerDataServices-SubmissionValidationR).
