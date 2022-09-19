@@ -162,6 +162,8 @@ SRA_df$active_location_URL=paste(stri_reverse(SRA_df$active_location_URL),"/",se
 #If there is a row that does not contain a file, based on whether a file name is present, remove that row.
 SRA_df=SRA_df[!is.na(SRA_df$filename...15),]
 
+SRA_df=unique(SRA_df)
+
 #Create data frames from Terms page of dbGaP SRA template or other drop down values.
 df_strategy=df_template_terms[2:35,1:2]
 colnames(df_strategy)<-c("Strategy","Description")
@@ -190,10 +192,13 @@ for (type_pos in 1:dim(SRA_df)[1]){
   }
 }
 
+
 #Fix the CRAI and BAI files to be index files
 #This has to be done before any rearrangements to the files occur.
 SRA_df$filetype...14[grep(pattern = "BAI", SRA_df$filetype...14)]<-"bam_index"
 SRA_df$filetype...14[grep(pattern = "CRAI", SRA_df$filetype...14)]<-"cram_index"
+SRA_df$filetype...14[grep(pattern = "bai", SRA_df$filetype...14)]<-"bam_index"
+SRA_df$filetype...14[grep(pattern = "crai", SRA_df$filetype...14)]<-"cram_index"
 
 
 #create a vector with all incorrect enums for removal from SRA_df
@@ -278,14 +283,15 @@ if(!all(unique(SRA_df$filetype...14)%in%df_type$filetype)){
 if (!identical(all_incorrect_values,character(0))){
   cat("\n\nFor any unexpected values, please review the input file and determine if these files should be submitted to dbGaP for the SRA.\n\tAt this time, these files have been removed from the dbGaP SRA submission file.\n")
   
+  incorrect_rows=c()
+  
   for (inct_val in all_incorrect_values){
-    SRA_col=grep(pattern = inct_val, x = SRA_df)
-    SRA_row=grep(pattern = inct_val, x = SRA_df[,SRA_col])
-    for (row in SRA_row){
-      SRA_df=SRA_df[-row,]
-    }
+    SRA_row=grep(pattern = inct_val, x = SRA_df$filetype...14)
+    incorrect_rows=c(incorrect_rows,SRA_row)
   }
 }
+
+SRA_df=SRA_df[-incorrect_rows,]
 
 #Note which row is missing information
 for (row in 1:dim(SRA_df)[1]){
