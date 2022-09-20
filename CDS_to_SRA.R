@@ -85,6 +85,12 @@ cat("The SRA submission file is being made at this time.\n")
 #
 ###########
 
+######
+#CHEAT IN
+
+file_path="CCDI/CCDIDC-56/CHOP_CDS_submission_metadata_template-v1.3.1.xlsx"
+template_path="CancerDataServices-CDS_to_SRA/phsXXXXXX.xlsx"
+
 #Rework the file path to obtain a file name, this will be used for the output file.
 file_name=stri_reverse(stri_split_fixed(str = (stri_split_fixed(str = stri_reverse(file_path), pattern="/",n = 2)[[1]][1]),pattern = ".", n=2)[[1]][2])
 
@@ -289,9 +295,9 @@ if (!identical(all_incorrect_values,character(0))){
     SRA_row=grep(pattern = inct_val, x = SRA_df$filetype...14)
     incorrect_rows=c(incorrect_rows,SRA_row)
   }
+  SRA_df=SRA_df[-incorrect_rows,]
 }
 
-SRA_df=SRA_df[-incorrect_rows,]
 
 #Note which row is missing information
 for (row in 1:dim(SRA_df)[1]){
