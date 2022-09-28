@@ -310,6 +310,17 @@ for (row in 1:dim(SRA_df)[1]){
 
 ###############
 #
+# Specific fixes
+#
+###############
+
+#For Archer Fusion library strategies, they are not recognized in the SRA, so they will be turned into "OTHER". 
+SRA_df$`library_strategy (click for details)`[grep(pattern = "Archer_Fusion",x = SRA_df$`library_strategy (click for details)`)]<-"OTHER"
+
+
+
+###############
+#
 # Data frame manipulation
 #
 ###############
