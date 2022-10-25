@@ -179,6 +179,16 @@ colnames(df_model)<-c("ILLUMINA","_LS454","PACBIO_SMRT","ION_TORRENT","OXFORD_NA
 df_type=data.frame("filetype"=c('bam',"fastq","cram","sff","reference_fasta","OxfordNanopore_native","PacBio_HDF5","csv","tab","bam_index","cram_index","vcf","bcf","vcf_index"))
 
 
+###############
+#
+# Specific fixes (Before verification occurs)
+#
+###############
+
+#For Archer Fusion library strategies, they are not recognized in the SRA, so they will be turned into "OTHER". 
+SRA_df$`library_strategy (click for details)`[grep(pattern = "Archer_Fusion",x = SRA_df$`library_strategy (click for details)`)]<-"OTHER"
+
+
 ######################
 #
 # Double verification against template
@@ -307,16 +317,6 @@ for (row in 1:dim(SRA_df)[1]){
     cat(paste("\nSubmission entry for library_id ",SRA_df$library_ID[row]," contains missing values for required properties. Please make corrections in the output file or in the input file and run again.",sep=""))
   }
 }
-
-###############
-#
-# Specific fixes
-#
-###############
-
-#For Archer Fusion library strategies, they are not recognized in the SRA, so they will be turned into "OTHER". 
-SRA_df$`library_strategy (click for details)`[grep(pattern = "Archer_Fusion",x = SRA_df$`library_strategy (click for details)`)]<-"OTHER"
-
 
 
 ###############
