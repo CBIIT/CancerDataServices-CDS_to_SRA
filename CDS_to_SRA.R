@@ -86,19 +86,17 @@ cat("The SRA submission file is being made at this time.\n")
 ###########
 
 #Rework the file path to obtain a file name, this will be used for the output file.
-file_name=stri_reverse(stri_split_fixed(str = (stri_split_fixed(str = stri_reverse(file_path), pattern="/",n = 2)[[1]][1]),pattern = ".", n=2)[[1]][2])
-
-ext=tolower(stri_reverse(stri_split_fixed(str = stri_reverse(file_path),pattern = ".",n=2)[[1]][1]))
-
-path=paste(stri_reverse(stri_split_fixed(str = stri_reverse(file_path), pattern="/",n = 2)[[1]][2]),"/",sep = "")
+file_name=stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][2])
+ext=tolower(stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][1]))
+path=paste(dirname(file_path),"/",sep = "")
 
 #Output file name based on input file name and date stamped.
 output_file=paste(file_name,
-                  "_SRA_submission_",
+                  "_SRA",
                   stri_replace_all_fixed(
                     str = Sys.Date(),
                     pattern = "-",
-                    replacement = "_"),
+                    replacement = ""),
                   sep="")
 
 
@@ -392,4 +390,4 @@ writeData(wb=wb, sheet="Sequence_Data", SRA_df)
 
 openxlsx::saveWorkbook(wb = wb,file = paste(path,output_file,".xlsx",sep = ""), overwrite = T)
 
-cat(paste("\n\nThe dbGaP SRA metadata submission has been created here: ",path,output_file,".xlsx.\n\n",sep = ""))
+cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,"\n\n",sep = "")) 
