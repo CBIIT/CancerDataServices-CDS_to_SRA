@@ -58,7 +58,7 @@ option_list = list(
 )
 
 #create list of options and values for file input
-opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.0")
+opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.1")
 opt = parse_args(opt_parser)
 
 #If no options are presented, return --help, stop and print the following message.
@@ -89,15 +89,6 @@ cat("The SRA submission file is being made at this time.\n")
 file_name=stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][2])
 ext=tolower(stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][1]))
 path=paste(dirname(file_path),"/",sep = "")
-
-#Output file name based on input file name and date stamped.
-output_file=paste(file_name,
-                  "_SRA",
-                  stri_replace_all_fixed(
-                    str = Sys.Date(),
-                    pattern = "-",
-                    replacement = ""),
-                  sep="")
 
 
 #Read in metadata page/file to check against the expected/required properties. 
@@ -367,6 +358,18 @@ for (row in 1:dim(library_id_count)[1]){
   }
 }
 
+#Fix issue where design description has to be at least 250 characters long. To avoid creating new data that was not supplied, we instead will add spaces onto the end of the string until 250 characters are hit, and then add one period to prevent white space cleaning from removing our spaces.
+for (row in 1:dim(SRA_df)[1]){
+  if (!is.na(SRA_df$design_description[row])){
+    slength=nchar(SRA_df$design_description[row])
+    if(slength<250){
+      addlength=250-slength
+      new_value=paste(SRA_df$design_description[row],paste(rep(x = " ",addlength),collapse = ""),".",sep = "")
+      SRA_df$design_description[row]=new_value
+    }
+  }
+}
+
 ####################
 #
 # fix column headers for write out
@@ -383,6 +386,13 @@ colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
 # Write out
 #
 #####################
+
+#Output file name based on phs_id.
+phs_id=unique(df$phs_accession)[1]
+output_file=paste(phs_id,
+                  "_SRA_submission",
+                  sep="")
+
 
 wb=openxlsx::loadWorkbook(file = template_path)
 
