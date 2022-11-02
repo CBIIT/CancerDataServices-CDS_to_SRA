@@ -435,3 +435,4 @@ writeData(wb=wb, sheet="Sequence_Data", SRA_df)
 openxlsx::saveWorkbook(wb = wb,file = paste(path,output_file,".xlsx",sep = ""), overwrite = T)
 
 cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,"\n\n",sep = "")) 
+  
