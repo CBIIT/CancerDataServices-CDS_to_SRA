@@ -10,11 +10,14 @@ Rscript --vanilla CDS_to_SRA.R --help
 ```
 Usage: CDS_to_SRA.R [options]
 
-CDS-CDS_to_SRA v2.0.0
+CDS_to_SRA v2.0.1
 
 Options:
 	-f CHARACTER, --file=CHARACTER
 		A validated dataset file (.xlsx, .tsv, .csv) based on the template CDS_submission_metadata_template-v1.3.1.xlsx
+
+	-s CHARACTER, --previous_submission=CHARACTER
+		A previous SRA submission file (xlsx) from the same phs_id study.
 
 	-t CHARACTER, --template=CHARACTER
 		A dbGaP SRA metadata template, 'phsXXXXXX'
@@ -30,7 +33,9 @@ Rscript --vanilla CDS_to_SRA.R -t phsXXXXXX.xlsx -f test_files/a_all_pass_valida
 The SRA submission file is being made at this time.
 
 
-The dbGaP SRA metadata submission has been created here: test_files/a_all_pass_validated_CDS-v1.3.1_SRA_submission_2022_09_12.xlsx.
+Process Complete.
+
+The output file can be found here: test_files/a_all_pass_validated_CDS-v1.3.1_SRA_submission_2022_09_12.xlsx.
 ```
 
 If there are any errors or problems with the file, it will write out the possible issues. Most of these should not occur as these submission manifests should be valid based on the [CDS-SubmissionValidatoR](https://github.com/CBIIT/CancerDataServices-SubmissionValidationR).
