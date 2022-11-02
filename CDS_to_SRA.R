@@ -53,6 +53,8 @@ rm(new.packages)
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL, 
               help="A validated dataset file (.xlsx, .tsv, .csv) based on the template CDS_submission_metadata_template-v1.3.1.xlsx", metavar="character"),
+  make_option(c("-s", "--previous_submission"), type="character", default=NULL, 
+              help="A previous SRA submission file (xlsx) from the same phs_id study.", metavar="character"),
   make_option(c("-t", "--template"), type="character", default=NULL, 
               help="A dbGaP SRA metadata template, 'phsXXXXXX'", metavar="character")
 )
@@ -74,6 +76,9 @@ file_path=file_path_as_absolute(opt$file)
 
 template_path=file_path_as_absolute(opt$template)
 
+if (!is.null(opt$previous_submission)){
+  previous_submission_path=file_path_as_absolute(opt$previous_submission)
+}
 
 #A start message for the user that the manifest creation is underway.
 cat("The SRA submission file is being made at this time.\n")
@@ -381,6 +386,30 @@ colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_chec
 colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
 
 
+####################
+#
+# Concatenate previous SRA submission.
+#
+####################
+
+if ((!is.null(opt$previous_submission))){
+  df_ps=suppressMessages(read_xlsx(path = previous_submission_path,sheet = "Sequence_Data", guess_max = 1000000, col_types = "text"))
+  
+  SRA_df=suppressMessages(unique(bind_rows(df_ps,SRA_df)))
+  
+  if (length(unique(SRA_df$library_ID))!=length(SRA_df$library_ID)){
+    cat("\nERROR: The are non-unique library ids with the addition of the new submission to the previous submission.\nPlease resolve these issues in the output of this file.\n\n")
+    library_ids=count(group_by(SRA_df,library_ID))
+    cat(paste("\nPlease refer to the following library_id list:\n",paste(unique(filter(library_ids,n>1)$library_ID),collapse = "\n"),sep = ""))
+  }
+
+# fix column headers for write out if combined
+  colnames(SRA_df)[grep(pattern = "filename",x = colnames(SRA_df))]<-"filename"
+  colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_checksum"
+  colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
+}
+
+
 #####################
 #
 # Write out
@@ -393,6 +422,11 @@ output_file=paste(phs_id,
                   "_SRA_submission",
                   sep="")
 
+#Create new output directory
+new_dir=paste(phs_id,"_SRA_submission_",stri_replace_all_fixed(str = Sys.Date(), pattern = "-",replacement = ""),"/",sep = "")
+dir.create(path = paste(path,new_dir,sep = ""), showWarnings = FALSE)
+
+path=paste(path,new_dir,sep = "")
 
 wb=openxlsx::loadWorkbook(file = template_path)
 
