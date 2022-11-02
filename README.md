@@ -39,3 +39,15 @@ The output file can be found here: test_files/a_all_pass_validated_CDS-v1.3.1_SR
 ```
 
 If there are any errors or problems with the file, it will write out the possible issues. Most of these should not occur as these submission manifests should be valid based on the [CDS-SubmissionValidatoR](https://github.com/CBIIT/CancerDataServices-SubmissionValidationR).
+
+For concatenation of a new SRA submission template onto an older submission template, the code would be:
+
+```
+Rscript --vanilla CDS_to_SRA.R -f test_files/a_all_pass_validated_CDS-v1.3.1.xlsx -s test_files/test1c_SRA_submission.xlsx -t phsXXXXXX.xlsx 
+The SRA submission file is being made at this time.
+
+
+Process Complete.
+
+The output file can be found here: CancerDataServices-CDS_to_SRA/test_files/test1_SRA_submission_20221102/
+```
