@@ -53,12 +53,14 @@ rm(new.packages)
 option_list = list(
   make_option(c("-f", "--file"), type="character", default=NULL, 
               help="A validated dataset file (.xlsx, .tsv, .csv) based on the template CDS_submission_metadata_template-v1.3.1.xlsx", metavar="character"),
+  make_option(c("-s", "--previous_submission"), type="character", default=NULL, 
+              help="A previous SRA submission file (xlsx) from the same phs_id study.", metavar="character"),
   make_option(c("-t", "--template"), type="character", default=NULL, 
               help="A dbGaP SRA metadata template, 'phsXXXXXX'", metavar="character")
 )
 
 #create list of options and values for file input
-opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.0")
+opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.1")
 opt = parse_args(opt_parser)
 
 #If no options are presented, return --help, stop and print the following message.
@@ -74,6 +76,9 @@ file_path=file_path_as_absolute(opt$file)
 
 template_path=file_path_as_absolute(opt$template)
 
+if (!is.null(opt$previous_submission)){
+  previous_submission_path=file_path_as_absolute(opt$previous_submission)
+}
 
 #A start message for the user that the manifest creation is underway.
 cat("The SRA submission file is being made at this time.\n")
@@ -89,15 +94,6 @@ cat("The SRA submission file is being made at this time.\n")
 file_name=stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][2])
 ext=tolower(stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][1]))
 path=paste(dirname(file_path),"/",sep = "")
-
-#Output file name based on input file name and date stamped.
-output_file=paste(file_name,
-                  "_SRA",
-                  stri_replace_all_fixed(
-                    str = Sys.Date(),
-                    pattern = "-",
-                    replacement = ""),
-                  sep="")
 
 
 #Read in metadata page/file to check against the expected/required properties. 
@@ -367,6 +363,18 @@ for (row in 1:dim(library_id_count)[1]){
   }
 }
 
+#Fix issue where design description has to be at least 250 characters long. To avoid creating new data that was not supplied, we instead will add spaces onto the end of the string until 250 characters are hit, and then add one period to prevent white space cleaning from removing our spaces.
+for (row in 1:dim(SRA_df)[1]){
+  if (!is.na(SRA_df$design_description[row])){
+    slength=nchar(SRA_df$design_description[row])
+    if(slength<250){
+      addlength=250-slength
+      new_value=paste(SRA_df$design_description[row],paste(rep(x = " ",addlength),collapse = ""),".",sep = "")
+      SRA_df$design_description[row]=new_value
+    }
+  }
+}
+
 ####################
 #
 # fix column headers for write out
@@ -378,11 +386,47 @@ colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_chec
 colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
 
 
+####################
+#
+# Concatenate previous SRA submission.
+#
+####################
+
+if ((!is.null(opt$previous_submission))){
+  df_ps=suppressMessages(read_xlsx(path = previous_submission_path,sheet = "Sequence_Data", guess_max = 1000000, col_types = "text"))
+  
+  SRA_df=suppressMessages(unique(bind_rows(df_ps,SRA_df)))
+  
+  if (length(unique(SRA_df$library_ID))!=length(SRA_df$library_ID)){
+    cat("\nERROR: The are non-unique library ids with the addition of the new submission to the previous submission.\nPlease resolve these issues in the output of this file.\n\n")
+    library_ids=count(group_by(SRA_df,library_ID))
+    cat(paste("\nPlease refer to the following library_id list:\n",paste(unique(filter(library_ids,n>1)$library_ID),collapse = "\n"),sep = ""))
+  }
+
+# fix column headers for write out if combined
+  colnames(SRA_df)[grep(pattern = "filename",x = colnames(SRA_df))]<-"filename"
+  colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_checksum"
+  colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
+}
+
+
 #####################
 #
 # Write out
 #
 #####################
+
+#Output file name based on phs_id.
+phs_id=unique(df$phs_accession)[1]
+output_file=paste(phs_id,
+                  "_SRA_submission",
+                  sep="")
+
+#Create new output directory
+new_dir=paste(phs_id,"_SRA_submission_",stri_replace_all_fixed(str = Sys.Date(), pattern = "-",replacement = ""),"/",sep = "")
+dir.create(path = paste(path,new_dir,sep = ""), showWarnings = FALSE)
+
+path=paste(path,new_dir,sep = "")
 
 wb=openxlsx::loadWorkbook(file = template_path)
 
@@ -391,3 +435,4 @@ writeData(wb=wb, sheet="Sequence_Data", SRA_df)
 openxlsx::saveWorkbook(wb = wb,file = paste(path,output_file,".xlsx",sep = ""), overwrite = T)
 
 cat(paste("\n\nProcess Complete.\n\nThe output file can be found here: ",path,"\n\n",sep = "")) 
+  
