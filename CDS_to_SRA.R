@@ -60,7 +60,7 @@ option_list = list(
 )
 
 #create list of options and values for file input
-opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.1")
+opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.2")
 opt = parse_args(opt_parser)
 
 #If no options are presented, return --help, stop and print the following message.
@@ -121,11 +121,36 @@ df_template_terms=suppressMessages(read_xlsx(path = template_path, sheet = "Term
 #create data frame with the columns of the dbGaP template and the rows of the CDS template
 SRA_df=data.frame(matrix(ncol = dim(df_template)[2],nrow=dim(df)[1]))
 
+#IF A BLANK TEMPLATE IS NOT USED, THIS PART WILL CREATE A SHIFTED OUTPUT FILE
 colnames(SRA_df)<-colnames(df_template)
 
 colnames(SRA_df)[grep(pattern = "filename...18",x = colnames(SRA_df))]<-"filename...15_1"
 colnames(SRA_df)[grep(pattern = "filetype...17",x = colnames(SRA_df))]<-"filetype...14_1"
 colnames(SRA_df)[grep(pattern = "MD5_checksum...19",x = colnames(SRA_df))]<-"MD5_checksum...16_1"
+
+#FIX TO NON-BLANK TEMPLATE USE, DESTROY THE FILE COLUMNS PAST TWO INSTANCES
+drop_name=grep(pattern = "filename...",x = colnames(SRA_df))
+drop_type=grep(pattern = "filetype...",x = colnames(SRA_df))
+drop_md5=grep(pattern = "MD5_checksum...",x = colnames(SRA_df))
+
+if (any(length(drop_name)>2 | length(drop_type)>2 | length(drop_md5)>2)){
+  if (length(drop_name)>2){
+    drop_name=drop_name[3:length(drop_name)]
+  }
+  
+  if (length(drop_type)>2){
+    drop_type=drop_type[3:length(drop_type)]
+  }
+  
+  if (length(drop_md5)>2){
+    drop_md5=drop_md5[3:length(drop_md5)]
+  }
+  
+  drop_all=c(drop_name,drop_type,drop_md5)
+  
+  SRA_df=SRA_df[,-drop_all]
+}
+
 
 SRA_df$phs_accession=stri_replace_all_fixed(str = stri_replace_all_fixed(str = df$acl,pattern = "['",replacement = ""), pattern = "']",replacement = "")
 
@@ -375,16 +400,6 @@ for (row in 1:dim(SRA_df)[1]){
   }
 }
 
-####################
-#
-# fix column headers for write out
-#
-####################
-
-colnames(SRA_df)[grep(pattern = "filename",x = colnames(SRA_df))]<-"filename"
-colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_checksum"
-colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
-
 
 ####################
 #
@@ -395,7 +410,22 @@ colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
 if ((!is.null(opt$previous_submission))){
   df_ps=suppressMessages(read_xlsx(path = previous_submission_path,sheet = "Sequence_Data", guess_max = 1000000, col_types = "text"))
   
-  SRA_df=suppressMessages(unique(bind_rows(df_ps,SRA_df)))
+  #rename the column headers in the read in data frame to match the current header versions in the SRA_df data frame. i.e. filename...18 --> filename...15_2
+  extra_col_num=length(grep(pattern = "filetype...", x = colnames(df_ps)))
+  
+  for (extra in 1:extra_col_num){
+    if (extra != 1){
+      type_grep= grep(pattern = "filetype...", x = colnames(df_ps)) [extra]
+      name_grep= grep(pattern = "filename...", x = colnames(df_ps)) [extra]
+      md5_grep= grep(pattern = "MD5_checksum...", x = colnames(df_ps)) [extra]
+      
+      colnames(df_ps)[type_grep]<-paste("filetype...14_",extra-1,sep = "")
+      colnames(df_ps)[name_grep]<-paste("filename...15_",extra-1,sep = "")
+      colnames(df_ps)[md5_grep]<-paste("MD5_checksum...16_",extra-1,sep = "")
+    }
+  }
+  
+  SRA_df=suppressMessages(unique(bind_rows(SRA_df,df_ps)))    
   
   if (length(unique(SRA_df$library_ID))!=length(SRA_df$library_ID)){
     cat("\nERROR: The are non-unique library ids with the addition of the new submission to the previous submission.\nPlease resolve these issues in the output of this file.\n\n")
@@ -403,11 +433,18 @@ if ((!is.null(opt$previous_submission))){
     cat(paste("\nPlease refer to the following library_id list:\n",paste(unique(filter(library_ids,n>1)$library_ID),collapse = "\n"),sep = ""))
   }
 
-# fix column headers for write out if combined
-  colnames(SRA_df)[grep(pattern = "filename",x = colnames(SRA_df))]<-"filename"
-  colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_checksum"
-  colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
 }
+
+
+####################
+#
+# fix column headers for write out
+#
+####################
+
+colnames(SRA_df)[grep(pattern = "filename",x = colnames(SRA_df))]<-"filename"
+colnames(SRA_df)[grep(pattern = "MD5_checksum",x = colnames(SRA_df))]<-"MD5_checksum"
+colnames(SRA_df)[grep(pattern = "filetype",x = colnames(SRA_df))]<-"filetype"
 
 
 #####################
@@ -429,6 +466,8 @@ dir.create(path = paste(path,new_dir,sep = ""), showWarnings = FALSE)
 path=paste(path,new_dir,sep = "")
 
 wb=openxlsx::loadWorkbook(file = template_path)
+
+openxlsx::deleteData(wb, sheet = "Sequence_Data",rows = 1:(dim(SRA_df)[1]+1),cols=1:(dim(SRA_df)[2]+1),gridExpand = TRUE)
 
 writeData(wb=wb, sheet="Sequence_Data", SRA_df)
 
