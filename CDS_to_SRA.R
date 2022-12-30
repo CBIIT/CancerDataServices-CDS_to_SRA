@@ -425,7 +425,7 @@ if ((!is.null(opt$previous_submission))){
     }
   }
   
-  SRA_df=suppressMessages(unique(bind_rows(SRA_df,df_ps)))    
+  SRA_df=suppressMessages(unique(bind_rows(df_ps,SRA_df)))    
   
   if (length(unique(SRA_df$library_ID))!=length(SRA_df$library_ID)){
     cat("\nERROR: The are non-unique library ids with the addition of the new submission to the previous submission.\nPlease resolve these issues in the output of this file.\n\n")
