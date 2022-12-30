@@ -1,7 +1,9 @@
 # CancerDataServices-CDS_to_SRA
 This script will take a CDS submission template and create a dbGaP SRA submission template.
 
+
 To run the script on a complete and validated [CDS validated submission template](https://github.com/CBIIT/cds-model/tree/main/metadata-manifest), run the following command in a terminal where R is installed for help.
+
 
 ```
 Rscript --vanilla CDS_to_SRA.R --help
@@ -10,7 +12,7 @@ Rscript --vanilla CDS_to_SRA.R --help
 ```
 Usage: CDS_to_SRA.R [options]
 
-CDS_to_SRA v2.0.1
+CDS_to_SRA v2.0.2
 
 Options:
 	-f CHARACTER, --file=CHARACTER
