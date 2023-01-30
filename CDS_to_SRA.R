@@ -228,6 +228,7 @@ SRA_df$filetype...14[grep(pattern = "BAI", SRA_df$filetype...14)]<-"bam_index"
 SRA_df$filetype...14[grep(pattern = "CRAI", SRA_df$filetype...14)]<-"cram_index"
 SRA_df$filetype...14[grep(pattern = "bai", SRA_df$filetype...14)]<-"bam_index"
 SRA_df$filetype...14[grep(pattern = "crai", SRA_df$filetype...14)]<-"cram_index"
+SRA_df$filetype...14[grep(pattern = "tbi", SRA_df$filetype...14)]<-"vcf_index"
 
 
 #create a vector with all incorrect enums for removal from SRA_df
@@ -264,9 +265,11 @@ if(!all(unique(SRA_df$`library_selection (click for details)`)%in%df_selection$S
 }
 
 #Check against library_layout
-#Fix output from CDS to SRA, single-end -> single, paired-end -> paired
+#Fix output from CCDI/CDS to SRA, single-end -> single, paired-end -> paired
 SRA_df$library_layout[grep(pattern = "single-end", SRA_df$library_layout)]<-"single"
 SRA_df$library_layout[grep(pattern = "paired-end", SRA_df$library_layout)]<-"paired"
+SRA_df$library_layout[grep(pattern = "aried end", SRA_df$library_layout)]<-"paried"
+SRA_df$library_layout[grep(pattern = "ingle end", SRA_df$library_layout)]<-"single"
 if(!all(unique(SRA_df$library_layout)%in%df_layout$Layout)){
   incorrect_values=unique(SRA_df$library_layout)[!unique(SRA_df$library_layout)%in%df_layout$Layout]
   incorrect_values=incorrect_values[!is.na(incorrect_values)]
