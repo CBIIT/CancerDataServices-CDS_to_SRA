@@ -237,7 +237,7 @@ SRA_df$library_layout[grep(pattern = "ingle end", SRA_df$library_layout)]<-"sing
 ######################
 
 sink(paste(path,output_file,".txt",sep = ""))
-cat("The following file will note when there are unexpected values or situations that occur when converting to the SRA submission file.")
+cat("The following file will note when there are unexpected values or situations that occur when converting to the SRA submission file.\n\n")
 
 #Fix all caps/ mixed caps versions of file types
 for (type_pos in 1:dim(SRA_df)[1]){
