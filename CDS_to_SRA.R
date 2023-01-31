@@ -207,21 +207,6 @@ df_type=data.frame("filetype"=c('bam',"fastq","cram","sff","reference_fasta","Ox
 #For Archer Fusion library strategies, they are not recognized in the SRA, so they will be turned into "OTHER". 
 SRA_df$`library_strategy (click for details)`[grep(pattern = "Archer_Fusion",x = SRA_df$`library_strategy (click for details)`)]<-"OTHER"
 
-
-######################
-#
-# Double verification against template
-#
-######################
-
-#Fix all caps/ mixed caps versions of file types
-for (type_pos in 1:dim(SRA_df)[1]){
-  if (tolower(SRA_df$filetype...14[type_pos])%in%df_type$filetype){
-    SRA_df$filetype...14[type_pos]=tolower(SRA_df$filetype...14[type_pos])
-  }
-}
-
-
 #Fix the CRAI and BAI files to be index files
 #This has to be done before any rearrangements to the files occur.
 SRA_df$filetype...14[grep(pattern = "BAI", SRA_df$filetype...14)]<-"bam_index"
@@ -229,6 +214,28 @@ SRA_df$filetype...14[grep(pattern = "CRAI", SRA_df$filetype...14)]<-"cram_index"
 SRA_df$filetype...14[grep(pattern = "bai", SRA_df$filetype...14)]<-"bam_index"
 SRA_df$filetype...14[grep(pattern = "crai", SRA_df$filetype...14)]<-"cram_index"
 SRA_df$filetype...14[grep(pattern = "tbi", SRA_df$filetype...14)]<-"vcf_index"
+
+#Fix output from CCDI/CDS to SRA, single-end -> single, paired-end -> paired
+SRA_df$library_layout[grep(pattern = "single-end", SRA_df$library_layout)]<-"single"
+SRA_df$library_layout[grep(pattern = "paired-end", SRA_df$library_layout)]<-"paired"
+SRA_df$library_layout[grep(pattern = "aired end", SRA_df$library_layout)]<-"paired"
+SRA_df$library_layout[grep(pattern = "ingle end", SRA_df$library_layout)]<-"single"
+
+
+######################
+#
+# Double verification against template
+#
+######################
+
+sink(paste(path,output_file,".txt",sep = ""))
+
+#Fix all caps/ mixed caps versions of file types
+for (type_pos in 1:dim(SRA_df)[1]){
+  if (tolower(SRA_df$filetype...14[type_pos])%in%df_type$filetype){
+    SRA_df$filetype...14[type_pos]=tolower(SRA_df$filetype...14[type_pos])
+  }
+}
 
 
 #create a vector with all incorrect enums for removal from SRA_df
@@ -265,11 +272,7 @@ if(!all(unique(SRA_df$`library_selection (click for details)`)%in%df_selection$S
 }
 
 #Check against library_layout
-#Fix output from CCDI/CDS to SRA, single-end -> single, paired-end -> paired
-SRA_df$library_layout[grep(pattern = "single-end", SRA_df$library_layout)]<-"single"
-SRA_df$library_layout[grep(pattern = "paired-end", SRA_df$library_layout)]<-"paired"
-SRA_df$library_layout[grep(pattern = "aried end", SRA_df$library_layout)]<-"paried"
-SRA_df$library_layout[grep(pattern = "ingle end", SRA_df$library_layout)]<-"single"
+
 if(!all(unique(SRA_df$library_layout)%in%df_layout$Layout)){
   incorrect_values=unique(SRA_df$library_layout)[!unique(SRA_df$library_layout)%in%df_layout$Layout]
   incorrect_values=incorrect_values[!is.na(incorrect_values)]
@@ -438,6 +441,7 @@ if ((!is.null(opt$previous_submission))){
 
 }
 
+sink()
 
 ####################
 #
