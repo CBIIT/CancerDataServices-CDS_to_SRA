@@ -95,6 +95,14 @@ file_name=stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),patter
 ext=tolower(stri_reverse(stri_split_fixed(stri_reverse(basename(file_path)),pattern = ".", n=2)[[1]][1]))
 path=paste(dirname(file_path),"/",sep = "")
 
+output_file=paste(file_name,
+                  "_SRA",
+                  stri_replace_all_fixed(
+                    str = Sys.Date(),
+                    pattern = "-",
+                    replacement = ""),
+                  sep="")
+
 
 #Read in metadata page/file to check against the expected/required properties. 
 #Logic has been setup to accept the original XLSX as well as a TSV or CSV format.
@@ -229,6 +237,7 @@ SRA_df$library_layout[grep(pattern = "ingle end", SRA_df$library_layout)]<-"sing
 ######################
 
 sink(paste(path,output_file,".txt",sep = ""))
+cat("The following file will note when there are unexpected values or situations that occur when converting to the SRA submission file.")
 
 #Fix all caps/ mixed caps versions of file types
 for (type_pos in 1:dim(SRA_df)[1]){
