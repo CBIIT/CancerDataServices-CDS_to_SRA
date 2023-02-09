@@ -60,7 +60,7 @@ option_list = list(
 )
 
 #create list of options and values for file input
-opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.3")
+opt_parser = OptionParser(option_list=option_list, description = "\nCDS_to_SRA v2.0.4")
 opt = parse_args(opt_parser)
 
 #If no options are presented, return --help, stop and print the following message.
@@ -404,6 +404,10 @@ for (row in 1:dim(library_id_count)[1]){
 }
 
 #Fix issue where design description has to be at least 250 characters long. To avoid creating new data that was not supplied, we instead will add spaces onto the end of the string until 250 characters are hit, and then add one period to prevent white space cleaning from removing our spaces.
+if (is.null(SRA_df$design_description)){
+  SRA_df$design_description=NA
+}
+
 for (row in 1:dim(SRA_df)[1]){
   if (!is.na(SRA_df$design_description[row])){
     slength=nchar(SRA_df$design_description[row])
@@ -412,6 +416,9 @@ for (row in 1:dim(SRA_df)[1]){
       new_value=paste(SRA_df$design_description[row],paste(rep(x = " ",addlength),collapse = ""),".",sep = "")
       SRA_df$design_description[row]=new_value
     }
+  }else if (is.na(SRA_df$design_description[row])){
+    filler_val=paste(paste(rep(x = " ", 250), collapse = ""),".",sep = " ")
+    SRA_df$design_description[row]=filler_val
   }
 }
 
