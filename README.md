@@ -12,7 +12,7 @@ Rscript --vanilla CDS_to_SRA.R --help
 ```
 Usage: CDS_to_SRA.R [options]
 
-CDS_to_SRA v2.0.3
+CDS_to_SRA v2.0.4
 
 Options:
 	-f CHARACTER, --file=CHARACTER
