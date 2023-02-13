@@ -116,6 +116,12 @@ if (ext == "tsv"){
   stop("\n\nERROR: Please submit a data file that is in either xlsx, tsv or csv format.\n\n")
 }
 
+#If there are no sequencing data associated with the submission. Simply end the program. This will help with pipeline as it would normally error out at a point when there is no information.
+
+if (all(is.na(df$library_id))){
+  stop("No sequencing files were found in this submission, and the SRA generation will be skipped.")
+}
+
 #read in the template information
 df_template=suppressMessages(read_xlsx(path = template_path, sheet = "Sequence_Data",col_names = TRUE))
 df_template_terms=suppressMessages(read_xlsx(path = template_path, sheet = "Terms",col_names = FALSE))
