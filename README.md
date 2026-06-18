@@ -1,3 +1,8 @@
+> [!WARNING]
+> This repository has been archived and is no longer maintained.  
+> The code is provided for historical reference and may contain unpatched or unknown vulnerabilities.  
+> It should not be used in production systems.  
+
 # CancerDataServices-CDS_to_SRA
 This script will take a CDS submission template and create a dbGaP SRA submission template.
 
